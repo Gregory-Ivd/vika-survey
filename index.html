@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Анкета — одностраничник Вики</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --rose: #C4736A;
+    --rose-light: #F5EAE8;
+    --rose-dark: #8C4A43;
+    --ink: #1A1614;
+    --ink-mid: #4A3F3C;
+    --ink-soft: #8A7E7B;
+    --bg: #FDFAF9;
+    --surface: #FFFFFF;
+    --border: #E8DEDD;
+    --border-focus: #C4736A;
+    --success: #5A8A6A;
+    --radius: 10px;
+    --transition: 0.2s ease;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Header */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 2rem 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .header-inner {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .header-label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--rose);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .header-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 1rem;
+  }
+
+  /* Progress */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .progress-bar-bg {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--rose);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    min-width: 70px;
+    text-align: right;
+  }
+
+  /* Main */
+  main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 6rem;
+  }
+
+  /* Block */
+  .block {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .block.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .block-header {
+    margin-bottom: 2rem;
+  }
+
+  .block-number {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--rose);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .block-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+
+  .block-desc {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+
+  /* Warning card */
+  .warning-card {
+    background: #FFF8F0;
+    border: 1px solid #F0D8C0;
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+    font-size: 14px;
+    color: #7A5030;
+    line-height: 1.6;
+  }
+
+  /* Question */
+  .question {
+    margin-bottom: 2rem;
+  }
+
+  .question-label {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+
+  .question-label .req {
+    color: var(--rose);
+    margin-left: 2px;
+  }
+
+  .question-hint {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+
+  /* Inputs */
+  input[type="text"],
+  textarea,
+  select {
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color var(--transition);
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  input[type="text"]:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(196, 115, 106, 0.12);
+  }
+
+  textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+
+  /* Radio & Checkbox */
+  .options-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .option-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color var(--transition), background var(--transition);
+    user-select: none;
+  }
+
+  .option-item:hover {
+    border-color: var(--rose);
+    background: var(--rose-light);
+  }
+
+  .option-item.selected {
+    border-color: var(--rose);
+    background: var(--rose-light);
+  }
+
+  .option-item input[type="radio"],
+  .option-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    padding: 0;
+    margin-top: 1px;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    transition: border-color var(--transition), background var(--transition);
+    position: relative;
+  }
+
+  .option-item input[type="checkbox"] { border-radius: 4px; }
+
+  .option-item input[type="radio"]:checked,
+  .option-item input[type="checkbox"]:checked {
+    border-color: var(--rose);
+    background: var(--rose);
+  }
+
+  .option-item input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .option-item input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    font-size: 11px;
+    color: white;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+  }
+
+  .option-text { font-size: 14px; color: var(--ink); line-height: 1.4; padding-top: 0; }
+
+  /* Publish checkbox */
+  .publish-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #F0F7F2;
+    border: 1px solid #C8E0D0;
+    cursor: pointer;
+    user-select: none;
+    width: fit-content;
+  }
+
+  .publish-check input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    min-width: 15px;
+    border: 1.5px solid #90C0A0;
+    border-radius: 3px;
+    background: white;
+    padding: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .publish-check input[type="checkbox"]:checked {
+    background: var(--success);
+    border-color: var(--success);
+  }
+
+  .publish-check input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    font-size: 10px;
+    color: white;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+  }
+
+  .publish-check-label {
+    font-size: 12px;
+    color: #3A6A4A;
+    font-weight: 500;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 2rem 0;
+  }
+
+  /* Navigation */
+  .nav-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    z-index: 10;
+  }
+
+  .nav-bar-inner {
+    max-width: 680px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 22px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover { background: var(--bg); color: var(--ink); }
+
+  .btn-primary {
+    background: var(--rose);
+    color: white;
+  }
+
+  .btn-primary:hover { background: var(--rose-dark); }
+  .btn-primary:disabled { background: var(--border); color: var(--ink-soft); cursor: not-allowed; }
+
+  /* Thank you screen */
+  .thankyou {
+    display: none;
+    text-align: center;
+    padding: 4rem 1rem;
+  }
+
+  .thankyou.active { display: block; }
+
+  .thankyou-icon {
+    font-size: 48px;
+    margin-bottom: 1.5rem;
+  }
+
+  .thankyou h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 1rem;
+  }
+
+  .thankyou p {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  /* Stopped screen */
+  .stopped {
+    display: none;
+    text-align: center;
+    padding: 4rem 1rem;
+  }
+
+  .stopped.active { display: block; }
+  .stopped h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 1rem;
+  }
+  .stopped p { font-size: 14px; color: var(--ink-soft); line-height: 1.7; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .header { padding: 1.25rem 1rem 1rem; }
+    main { padding: 1.5rem 1rem 5rem; }
+    .block-title { font-size: 22px; }
+    .nav-bar { padding: 0.75rem 1rem; }
+    .btn { padding: 9px 16px; font-size: 13px; }
+  }
+
+  .error-msg {
+    font-size: 12px;
+    color: #C45050;
+    margin-top: 6px;
+    display: none;
+  }
+  .has-error .error-msg { display: block; }
+  .has-error input[type="text"],
+  .has-error textarea { border-color: #C45050; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-label">Конфиденциальная анкета</div>
+    <div class="header-title">Одностраничник Вики — поиск серьёзных отношений</div>
+    <div class="progress-wrap">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+      <div class="progress-label" id="progressLabel">Блок 0 из 7</div>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <!-- Согласие -->
+  <div class="block active" id="block-0">
+    <div class="block-header">
+      <div class="block-number">Прежде чем начать</div>
+      <div class="block-title">Согласие на использование ответов</div>
+      <div class="block-desc">Эта анкета поможет сформировать одностраничник для поиска серьёзных отношений. Ответы конфиденциальны; публиковать будет только то, что ты явно разрешишь. Отвечай только на те вопросы, которые считаешь комфортными.</div>
+    </div>
+
+    <div class="question" id="q-consent">
+      <div class="question-label">Даёшь ли ты согласие на использование ответов для создания одностраничника? <span class="req">*</span></div>
+      <div class="options-list">
+        <label class="option-item">
+          <input type="radio" name="consent" value="yes">
+          <span class="option-text">Да, даю согласие на использование моих ответов для создания одностраничника</span>
+        </label>
+        <label class="option-item">
+          <input type="radio" name="consent" value="no">
+          <span class="option-text">Нет, не даю согласие</span>
+        </label>
+      </div>
+      <div class="error-msg">Пожалуйста, выбери один из вариантов</div>
+    </div>
+  </div>
+
+  <!-- Блок 1 -->
+  <div class="block" id="block-1">
+    <div class="block-header">
+      <div class="block-number">Блок 1 из 6</div>
+      <div class="block-title">Основные публичные данные</div>
+    </div>
+
+    <div class="question" id="q-name">
+      <div class="question-label">1. Как тебя зовут и как ты хочешь, чтобы тебя называли на странице? <span class="req">*</span></div>
+      <div class="question-hint">Укажи имя или псевдоним, который можно публиковать.</div>
+      <input type="text" id="name" placeholder="Например: Вика или Виктория">
+      <label class="publish-check"><input type="checkbox" id="pub-name"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+      <div class="error-msg">Поле обязательно для заполнения</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question" id="q-age">
+      <div class="question-label">2. Возраст и город <span class="req">*</span></div>
+      <div class="question-hint">Можно указать точный возраст или диапазон, например: 34 или 30–35.</div>
+      <input type="text" id="age" placeholder="Например: 32, Москва">
+      <label class="publish-check"><input type="checkbox" id="pub-age"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+      <div class="error-msg">Поле обязательно для заполнения</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question" id="q-about">
+      <div class="question-label">3. Кратко о себе — 1–2 предложения, которые ты готова видеть на странице <span class="req">*</span></div>
+      <div class="question-hint">Коротко про ценности, род занятий, что делает тебя счастливой.</div>
+      <textarea id="about" placeholder="Расскажи о себе..."></textarea>
+      <label class="publish-check"><input type="checkbox" id="pub-about"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+      <div class="error-msg">Поле обязательно для заполнения</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question" id="q-words">
+      <div class="question-label">4. Три слова, которые лучше всего описывают тебя <span class="req">*</span></div>
+      <input type="text" id="words" placeholder="Например: честная, тёплая, любопытная">
+      <label class="publish-check"><input type="checkbox" id="pub-words"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+      <div class="error-msg">Поле обязательно для заполнения</div>
+    </div>
+  </div>
+
+  <!-- Блок 2 -->
+  <div class="block" id="block-2">
+    <div class="block-header">
+      <div class="block-number">Блок 2 из 6</div>
+      <div class="block-title">Что ты ищешь</div>
+    </div>
+
+    <div class="question" id="q-reltype">
+      <div class="question-label">5. Какой тип отношений ты ищешь? <span class="req">*</span></div>
+      <div class="question-hint">Отметь все подходящие варианты.</div>
+      <div class="options-list">
+        <label class="option-item"><input type="checkbox" name="reltype" value="Серьёзные отношения / брак"><span class="option-text">Серьёзные отношения / брак</span></label>
+        <label class="option-item"><input type="checkbox" name="reltype" value="Долгосрочное партнёрство"><span class="option-text">Долгосрочное партнёрство</span></label>
+        <label class="option-item"><input type="checkbox" name="reltype" value="Дружеские отношения с перспективой"><span class="option-text">Дружеские отношения с перспективой</span></label>
+        <label class="option-item"><input type="checkbox" name="reltype" value="Не уверена"><span class="option-text">Не уверена</span></label>
+        <label class="option-item"><input type="checkbox" name="reltype" value="Другое"><span class="option-text">Другое</span></label>
+      </div>
+      <div class="error-msg">Выбери хотя бы один вариант</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question" id="q-qualities">
+      <div class="question-label">6. Какие три качества в мужчине для тебя критичны? <span class="req">*</span></div>
+      <div class="question-hint">Перечисли качества в порядке важности.</div>
+      <textarea id="qualities" placeholder="1. &#10;2. &#10;3. "></textarea>
+      <label class="publish-check"><input type="checkbox" id="pub-qualities"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+      <div class="error-msg">Поле обязательно для заполнения</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question">
+      <div class="question-label">7. Какие компромиссы ты готова принять?</div>
+      <div class="question-hint">Например, график работы, место проживания, стиль жизни.</div>
+      <textarea id="compromises" placeholder="Напиши свой ответ..."></textarea>
+      <label class="publish-check"><input type="checkbox" id="pub-compromises"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question" id="q-kids">
+      <div class="question-label">8. Наличие детей и отношение к детям <span class="req">*</span></div>
+      <div class="options-list">
+        <label class="option-item"><input type="radio" name="kids" value="Есть дети и это нормально"><span class="option-text">Есть дети и это нормально</span></label>
+        <label class="option-item"><input type="radio" name="kids" value="Есть дети, но я не хочу больше"><span class="option-text">Есть дети, но я не хочу больше</span></label>
+        <label class="option-item"><input type="radio" name="kids" value="Нет, хочу детей"><span class="option-text">Нет, хочу детей</span></label>
+        <label class="option-item"><input type="radio" name="kids" value="Нет, не хочу детей"><span class="option-text">Нет, не хочу детей</span></label>
+        <label class="option-item"><input type="radio" name="kids" value="Не уверена"><span class="option-text">Не уверена</span></label>
+      </div>
+      <div class="error-msg">Пожалуйста, выбери вариант</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question" id="q-move">
+      <div class="question-label">9. Готовность к переезду или совместному проживанию <span class="req">*</span></div>
+      <div class="options-list">
+        <label class="option-item"><input type="radio" name="move" value="Готова"><span class="option-text">Готова</span></label>
+        <label class="option-item"><input type="radio" name="move" value="Не готова"><span class="option-text">Не готова</span></label>
+        <label class="option-item"><input type="radio" name="move" value="Возможно при обсуждении"><span class="option-text">Возможно при обсуждении</span></label>
+      </div>
+      <div class="error-msg">Пожалуйста, выбери вариант</div>
+    </div>
+  </div>
+
+  <!-- Блок 3 -->
+  <div class="block" id="block-3">
+    <div class="block-header">
+      <div class="block-number">Блок 3 из 6</div>
+      <div class="block-title">Что ты готова дать в отношениях</div>
+    </div>
+
+    <div class="question" id="q-strengths">
+      <div class="question-label">10. Три вещи, которые ты считаешь своими сильными сторонами в отношениях <span class="req">*</span></div>
+      <textarea id="strengths" placeholder="1. &#10;2. &#10;3. "></textarea>
+      <label class="publish-check"><input type="checkbox" id="pub-strengths"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+      <div class="error-msg">Поле обязательно для заполнения</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question">
+      <div class="question-label">11. Как ты выражаешь любовь и поддержку — приведи примеры</div>
+      <textarea id="love" placeholder="Напиши свой ответ..."></textarea>
+      <label class="publish-check"><input type="checkbox" id="pub-love"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question">
+      <div class="question-label">12. Какие ожидания по распределению обязанностей в паре?</div>
+      <textarea id="duties" placeholder="Напиши свой ответ..."></textarea>
+      <label class="publish-check"><input type="checkbox" id="pub-duties"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+    </div>
+  </div>
+
+  <!-- Блок 4 -->
+  <div class="block" id="block-4">
+    <div class="block-header">
+      <div class="block-number">Блок 4 из 6</div>
+      <div class="block-title">Травма и личные границы</div>
+    </div>
+
+    <div class="warning-card">
+      Эти вопросы касаются личного и могут вызвать эмоциональную реакцию. Отвечай только если чувствуешь себя комфортно. Всё, что помечено «не публиковать», останется конфиденциальным и не будет размещено на лендинге без твоего отдельного согласия.
+    </div>
+
+    <div class="question" id="q-past">
+      <div class="question-label">13. Хочешь ли ты, чтобы на странице упоминалось прошлое: развод, травма, сложный опыт? <span class="req">*</span></div>
+      <div class="options-list">
+        <label class="option-item"><input type="radio" name="past" value="Да, кратко"><span class="option-text">Да, кратко</span></label>
+        <label class="option-item"><input type="radio" name="past" value="Да, подробно"><span class="option-text">Да, подробно</span></label>
+        <label class="option-item"><input type="radio" name="past" value="Нет, не упоминать"><span class="option-text">Нет, не упоминать</span></label>
+      </div>
+      <div class="error-msg">Пожалуйста, выбери вариант</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question">
+      <div class="question-label">14. Если да, кратко опиши, что можно упомянуть на странице</div>
+      <div class="question-hint">Укажи формулировку, которую считаешь безопасной для публикации.</div>
+      <textarea id="past-detail" placeholder="Напиши свой ответ..."></textarea>
+      <label class="publish-check"><input type="checkbox" id="pub-past-detail"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question">
+      <div class="question-label">15. Какие темы для тебя триггерные и не должны обсуждаться публично?</div>
+      <textarea id="triggers" placeholder="Напиши свой ответ..."></textarea>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question" id="q-boundaries">
+      <div class="question-label">16. Какие границы и условия общения с потенциальными кандидатами ты хочешь установить? <span class="req">*</span></div>
+      <div class="question-hint">Например, запрет на обсуждение прошлых отношений, формат первого контакта, необходимость уважительного тона.</div>
+      <textarea id="boundaries" placeholder="Напиши свой ответ..."></textarea>
+      <label class="publish-check"><input type="checkbox" id="pub-boundaries"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+      <div class="error-msg">Поле обязательно для заполнения</div>
+    </div>
+  </div>
+
+  <!-- Блок 5 -->
+  <div class="block" id="block-5">
+    <div class="block-header">
+      <div class="block-number">Блок 5 из 6</div>
+      <div class="block-title">Практическая фильтрация кандидатов</div>
+    </div>
+
+    <div class="question" id="q-requirements">
+      <div class="question-label">17. Какие минимальные требования к кандидату? <span class="req">*</span></div>
+      <div class="question-hint">Возраст, образование, семейное положение, профессия, образ жизни, готовность к серьёзным отношениям.</div>
+      <textarea id="requirements" placeholder="Напиши свой ответ..."></textarea>
+      <label class="publish-check"><input type="checkbox" id="pub-requirements"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+      <div class="error-msg">Поле обязательно для заполнения</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question" id="q-redflags">
+      <div class="question-label">18. Какие красные флаги для тебя неприемлемы? <span class="req">*</span></div>
+      <div class="question-hint">Например, агрессия, зависимости, ложь, давление, неуважение к границам.</div>
+      <textarea id="redflags" placeholder="Напиши свой ответ..."></textarea>
+      <label class="publish-check"><input type="checkbox" id="pub-redflags"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+      <div class="error-msg">Поле обязательно для заполнения</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question" id="q-contact-format">
+      <div class="question-label">19. Какой формат первого контакта ты предпочитаешь? <span class="req">*</span></div>
+      <div class="options-list">
+        <label class="option-item"><input type="radio" name="contact-format" value="Сообщение в мессенджере"><span class="option-text">Сообщение в мессенджере</span></label>
+        <label class="option-item"><input type="radio" name="contact-format" value="Короткий звонок"><span class="option-text">Короткий звонок</span></label>
+        <label class="option-item"><input type="radio" name="contact-format" value="Встреча в публичном месте"><span class="option-text">Встреча в публичном месте</span></label>
+        <label class="option-item"><input type="radio" name="contact-format" value="Через посредника"><span class="option-text">Через посредника</span></label>
+      </div>
+      <div class="error-msg">Пожалуйста, выбери вариант</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question" id="q-interview">
+      <div class="question-label">20. Готова ли ты пройти короткое предварительное интервью или встречу с претендентом? <span class="req">*</span></div>
+      <div class="options-list">
+        <label class="option-item"><input type="radio" name="interview" value="Да"><span class="option-text">Да</span></label>
+        <label class="option-item"><input type="radio" name="interview" value="Нет"><span class="option-text">Нет</span></label>
+        <label class="option-item"><input type="radio" name="interview" value="Возможно"><span class="option-text">Возможно</span></label>
+      </div>
+      <div class="error-msg">Пожалуйста, выбери вариант</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question" id="q-contactways">
+      <div class="question-label">21. Какие способы связи можно указывать на лендинге для предварительного контакта? <span class="req">*</span></div>
+      <div class="options-list">
+        <label class="option-item"><input type="checkbox" name="contactways" value="Email посредника"><span class="option-text">Email посредника</span></label>
+        <label class="option-item"><input type="checkbox" name="contactways" value="Телефон посредника"><span class="option-text">Телефон посредника</span></label>
+        <label class="option-item"><input type="checkbox" name="contactways" value="Форма обратной связи на сайте"><span class="option-text">Форма обратной связи на сайте</span></label>
+        <label class="option-item"><input type="checkbox" name="contactways" value="Ссылка на профиль в соцсети посредника"><span class="option-text">Ссылка на профиль в соцсети посредника</span></label>
+      </div>
+      <div class="error-msg">Выбери хотя бы один вариант</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question" id="q-video">
+      <div class="question-label">22. Готова ли ты, чтобы кандидаты присылали короткое видео-введение на 30–60 секунд как часть отбора? <span class="req">*</span></div>
+      <div class="options-list">
+        <label class="option-item"><input type="radio" name="video" value="Да"><span class="option-text">Да</span></label>
+        <label class="option-item"><input type="radio" name="video" value="Нет"><span class="option-text">Нет</span></label>
+        <label class="option-item"><input type="radio" name="video" value="Возможно"><span class="option-text">Возможно</span></label>
+      </div>
+      <div class="error-msg">Пожалуйста, выбери вариант</div>
+    </div>
+  </div>
+
+  <!-- Блок 6 -->
+  <div class="block" id="block-6">
+    <div class="block-header">
+      <div class="block-number">Блок 6 из 6</div>
+      <div class="block-title">Визуал и тон страницы</div>
+    </div>
+
+    <div class="question" id="q-photos">
+      <div class="question-label">23. Какие фото ты готова предоставить для страницы? <span class="req">*</span></div>
+      <div class="options-list">
+        <label class="option-item"><input type="checkbox" name="photos" value="Портрет"><span class="option-text">Портрет</span></label>
+        <label class="option-item"><input type="checkbox" name="photos" value="Фото в жизни"><span class="option-text">Фото в жизни</span></label>
+        <label class="option-item"><input type="checkbox" name="photos" value="Нет фото"><span class="option-text">Нет фото</span></label>
+        <label class="option-item"><input type="checkbox" name="photos" value="Другое"><span class="option-text">Другое</span></label>
+      </div>
+      <div class="error-msg">Выбери хотя бы один вариант</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question" id="q-tone">
+      <div class="question-label">24. Какой тон страницы ты предпочитаешь? <span class="req">*</span></div>
+      <div class="options-list">
+        <label class="option-item"><input type="radio" name="tone" value="Тёплый и искренний"><span class="option-text">Тёплый и искренний</span></label>
+        <label class="option-item"><input type="radio" name="tone" value="Сдержанный и серьёзный"><span class="option-text">Сдержанный и серьёзный</span></label>
+        <label class="option-item"><input type="radio" name="tone" value="Лёгкий и с юмором"><span class="option-text">Лёгкий и с юмором</span></label>
+      </div>
+      <div class="error-msg">Пожалуйста, выбери вариант</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question">
+      <div class="question-label">25. Есть ли любимые цитаты или фразы, которые можно использовать на странице?</div>
+      <input type="text" id="quote" placeholder="Напиши цитату...">
+      <label class="publish-check"><input type="checkbox" id="pub-quote"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="question">
+      <div class="question-label">26. Дополнительные комментарии или пожелания</div>
+      <textarea id="comments" placeholder="Напиши свой ответ..."></textarea>
+      <label class="publish-check"><input type="checkbox" id="pub-comments"><span class="publish-check-label">Разрешаю публиковать этот ответ на лендинге</span></label>
+    </div>
+  </div>
+
+  <!-- Thank you -->
+  <div class="thankyou" id="thankyou">
+    <div class="thankyou-icon">🌸</div>
+    <h2>Спасибо, анкета заполнена!</h2>
+    <p>Ответы получены и переданы в работу. Мы свяжемся с тобой в ближайшее время, чтобы обсудить детали одностраничника.</p>
+  </div>
+
+  <!-- Stopped -->
+  <div class="stopped" id="stopped">
+    <div style="font-size:36px; margin-bottom:1rem;">🔒</div>
+    <h2>Заполнение остановлено</h2>
+    <p>Ты отказалась от согласия на обработку ответов.<br>Если передумаешь — можно вернуться и начать заново.</p>
+    <button class="btn btn-primary" style="margin-top:1.5rem;" onclick="resetForm()">Начать заново</button>
+  </div>
+
+</main>
+
+<div class="nav-bar" id="navBar">
+  <div class="nav-bar-inner">
+    <button class="btn btn-secondary" id="btnBack" onclick="goBack()" style="display:none;">← Назад</button>
+    <div style="flex:1"></div>
+    <button class="btn btn-primary" id="btnNext" onclick="goNext()">Далее →</button>
+  </div>
+</div>
+
+<script>
+  let currentBlock = 0;
+  const totalBlocks = 7; // 0 (consent) + 6 blocks
+
+  function updateProgress() {
+    const pct = Math.round((currentBlock / (totalBlocks - 1)) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent =
+      currentBlock === 0 ? 'Начало' : `Блок ${currentBlock} из 6`;
+  }
+
+  function showBlock(idx) {
+    document.querySelectorAll('.block').forEach(b => b.classList.remove('active'));
+    const el = document.getElementById('block-' + idx);
+    if (el) el.classList.add('active');
+    document.getElementById('btnBack').style.display = idx > 0 ? 'inline-block' : 'none';
+    const btnNext = document.getElementById('btnNext');
+    btnNext.textContent = idx === 6 ? 'Отправить ✓' : 'Далее →';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    updateProgress();
+  }
+
+  function validate(blockIdx) {
+    let ok = true;
+
+    function markField(el, valid) {
+      el.classList.toggle('has-error', !valid);
+    }
+
+    function checkText(id) {
+      const el = document.getElementById(id);
+      if (!el) return true;
+      const wrap = el.closest('.question');
+      const v = el.value.trim().length > 0;
+      markField(wrap, v);
+      return v;
+    }
+
+    function checkRadio(name) {
+      const items = document.querySelectorAll(`input[name="${name}"]`);
+      if (!items.length) return true;
+      const v = [...items].some(r => r.checked);
+      const wrap = items[0].closest('.question');
+      markField(wrap, v);
+      return v;
+    }
+
+    function checkCheckbox(name) {
+      const items = document.querySelectorAll(`input[name="${name}"]`);
+      if (!items.length) return true;
+      const v = [...items].some(r => r.checked);
+      const wrap = items[0].closest('.question');
+      markField(wrap, v);
+      return v;
+    }
+
+    if (blockIdx === 0) {
+      ok = checkRadio('consent') && ok;
+    }
+    if (blockIdx === 1) {
+      ok = checkText('name') && ok;
+      ok = checkText('age') && ok;
+      ok = checkText('about') && ok;
+      ok = checkText('words') && ok;
+    }
+    if (blockIdx === 2) {
+      ok = checkCheckbox('reltype') && ok;
+      ok = checkText('qualities') && ok;
+      ok = checkRadio('kids') && ok;
+      ok = checkRadio('move') && ok;
+    }
+    if (blockIdx === 3) {
+      ok = checkText('strengths') && ok;
+    }
+    if (blockIdx === 4) {
+      ok = checkRadio('past') && ok;
+      ok = checkText('boundaries') && ok;
+    }
+    if (blockIdx === 5) {
+      ok = checkText('requirements') && ok;
+      ok = checkText('redflags') && ok;
+      ok = checkRadio('contact-format') && ok;
+      ok = checkRadio('interview') && ok;
+      ok = checkCheckbox('contactways') && ok;
+      ok = checkRadio('video') && ok;
+    }
+    if (blockIdx === 6) {
+      ok = checkCheckbox('photos') && ok;
+      ok = checkRadio('tone') && ok;
+    }
+    return ok;
+  }
+
+  function goNext() {
+    if (!validate(currentBlock)) return;
+
+    // Check consent
+    if (currentBlock === 0) {
+      const consent = document.querySelector('input[name="consent"]:checked');
+      if (consent && consent.value === 'no') {
+        document.querySelectorAll('.block').forEach(b => b.classList.remove('active'));
+        document.getElementById('stopped').classList.add('active');
+        document.getElementById('navBar').style.display = 'none';
+        return;
+      }
+    }
+
+    if (currentBlock < 6) {
+      currentBlock++;
+      showBlock(currentBlock);
+    } else {
+      submit();
+    }
+  }
+
+  function goBack() {
+    if (currentBlock > 0) {
+      currentBlock--;
+      showBlock(currentBlock);
+    }
+  }
+
+  function collectAnswers() {
+    function val(id) {
+      const el = document.getElementById(id);
+      return el ? el.value.trim() : '';
+    }
+    function radio(name) {
+      const el = document.querySelector(`input[name="${name}"]:checked`);
+      return el ? el.value : '';
+    }
+    function checkboxes(name) {
+      return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(e => e.value).join(', ');
+    }
+    function pub(id) {
+      const el = document.getElementById(id);
+      return el && el.checked ? 'Да' : 'Нет';
+    }
+
+    return {
+      'Дата': new Date().toLocaleString('ru-RU'),
+      'Согласие': radio('consent'),
+      '1. Имя': val('name'),
+      '1. Имя — публиковать': pub('pub-name'),
+      '2. Возраст и город': val('age'),
+      '2. Возраст — публиковать': pub('pub-age'),
+      '3. О себе': val('about'),
+      '3. О себе — публиковать': pub('pub-about'),
+      '4. Три слова': val('words'),
+      '4. Три слова — публиковать': pub('pub-words'),
+      '5. Тип отношений': checkboxes('reltype'),
+      '6. Качества в мужчине': val('qualities'),
+      '6. Качества — публиковать': pub('pub-qualities'),
+      '7. Компромиссы': val('compromises'),
+      '7. Компромиссы — публиковать': pub('pub-compromises'),
+      '8. Дети': radio('kids'),
+      '9. Переезд': radio('move'),
+      '10. Сильные стороны': val('strengths'),
+      '10. Сильные стороны — публиковать': pub('pub-strengths'),
+      '11. Любовь и поддержка': val('love'),
+      '11. Любовь — публиковать': pub('pub-love'),
+      '12. Обязанности в паре': val('duties'),
+      '12. Обязанности — публиковать': pub('pub-duties'),
+      '13. Упоминание прошлого': radio('past'),
+      '14. Что упомянуть': val('past-detail'),
+      '14. Прошлое — публиковать': pub('pub-past-detail'),
+      '15. Триггерные темы': val('triggers'),
+      '16. Границы общения': val('boundaries'),
+      '16. Границы — публиковать': pub('pub-boundaries'),
+      '17. Требования к кандидату': val('requirements'),
+      '17. Требования — публиковать': pub('pub-requirements'),
+      '18. Красные флаги': val('redflags'),
+      '18. Красные флаги — публиковать': pub('pub-redflags'),
+      '19. Формат первого контакта': radio('contact-format'),
+      '20. Интервью': radio('interview'),
+      '21. Способы связи': checkboxes('contactways'),
+      '22. Видео-введение': radio('video'),
+      '23. Фото': checkboxes('photos'),
+      '24. Тон страницы': radio('tone'),
+      '25. Цитата': val('quote'),
+      '25. Цитата — публиковать': pub('pub-quote'),
+      '26. Доп. комментарии': val('comments'),
+      '26. Комментарии — публиковать': pub('pub-comments'),
+    };
+  }
+
+  function submit() {
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby21hCQxtEYAE5Hy5ObrWm-HXQ2g2dW3kRe57HYRVsPPs_mRAkCEtGQwAWeMq3Zsn8/exec';
+
+    const btnNext = document.getElementById('btnNext');
+    btnNext.textContent = 'Отправка...';
+    btnNext.disabled = true;
+
+    const data = collectAnswers();
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    .then(() => {
+      document.querySelectorAll('.block').forEach(b => b.classList.remove('active'));
+      document.getElementById('thankyou').classList.add('active');
+      document.getElementById('navBar').style.display = 'none';
+      document.getElementById('progressFill').style.width = '100%';
+      document.getElementById('progressLabel').textContent = 'Готово';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    })
+    .catch(() => {
+      btnNext.textContent = 'Отправить ✓';
+      btnNext.disabled = false;
+      alert('Ошибка отправки. Проверь интернет-соединение и попробуй снова.');
+    });
+  }
+
+  function resetForm() {
+    document.getElementById('stopped').classList.remove('active');
+    document.getElementById('navBar').style.display = '';
+    currentBlock = 0;
+    showBlock(0);
+    document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(el => el.checked = false);
+    document.querySelectorAll('input[type="text"], textarea').forEach(el => el.value = '');
+    document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+  }
+
+  // Highlight option-item on check
+  document.addEventListener('change', function(e) {
+    const input = e.target;
+    if (input.type === 'radio' || input.type === 'checkbox') {
+      if (input.closest('.option-item')) {
+        if (input.type === 'radio') {
+          document.querySelectorAll(`input[name="${input.name}"]`).forEach(r => {
+            r.closest('.option-item').classList.remove('selected');
+          });
+        }
+        input.closest('.option-item').classList.toggle('selected', input.checked);
+      }
+    }
+  });
+
+  updateProgress();
+</script>
+</body>
+</html>
